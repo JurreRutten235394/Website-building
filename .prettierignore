@@ -5,3 +5,4 @@ pnpm-lock.yaml
 packages/cli/src/template/**/*.*
 **/locale/**
 stats.json
+sites/flight-finder/public/airports.json

@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Flight Finder</title>
+    <meta name="description" content="Find the cheapest flights from your airport for a date or a whole week." />
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="styles.css" />
+    <script type="module" src="app.js"></script>
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="wrap header-inner">
+        <a class="brand" href="./">
+          <svg class="brand-mark" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M21 15.5v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V8.5l-8 5v2l8-2.5V18l-2 1.5V21l3.5-1 3.5 1v-1.5L13 18v-5z" />
+          </svg>
+          Flight Finder
+        </a>
+        <p class="quota" id="quota" hidden></p>
+      </div>
+    </header>
+
+    <main class="wrap">
+      <section class="hero">
+        <h1>Where can I fly cheaply?</h1>
+        <p>Pick your airport and your dates to see the cheapest destinations, or check one route day by day.</p>
+      </section>
+
+      <form class="search card" id="search-form" novalidate>
+        <div class="tabs" role="tablist" aria-label="Search type">
+          <button type="button" role="tab" id="tab-explore" aria-selected="true" data-mode="explore">
+            Cheapest from my airport
+          </button>
+          <button type="button" role="tab" id="tab-route" aria-selected="false" data-mode="route">
+            Specific route
+          </button>
+        </div>
+
+        <div class="grid">
+          <div class="field span-2">
+            <label for="from-input">From</label>
+            <div class="airport-picker" data-name="from">
+              <ul class="chips" aria-label="Selected departure airports"></ul>
+              <input
+                id="from-input"
+                type="text"
+                autocomplete="off"
+                spellcheck="false"
+                placeholder="City or airport code, e.g. Amsterdam"
+                role="combobox"
+                aria-autocomplete="list"
+                aria-expanded="false"
+                aria-controls="from-suggestions"
+              />
+              <ul class="suggestions" id="from-suggestions" role="listbox" hidden></ul>
+            </div>
+            <p class="nearby" id="nearby" hidden></p>
+          </div>
+
+          <div class="field span-2" data-show="route" hidden>
+            <label for="to-input">To</label>
+            <div class="airport-picker" data-name="to">
+              <ul class="chips" aria-label="Selected destination airports"></ul>
+              <input
+                id="to-input"
+                type="text"
+                autocomplete="off"
+                spellcheck="false"
+                placeholder="City or airport code, e.g. Barcelona"
+                role="combobox"
+                aria-autocomplete="list"
+                aria-expanded="false"
+                aria-controls="to-suggestions"
+              />
+              <ul class="suggestions" id="to-suggestions" role="listbox" hidden></ul>
+            </div>
+          </div>
+
+          <fieldset class="field">
+            <legend>Trip</legend>
+            <div class="segmented">
+              <label><input type="radio" name="trip" value="oneway" checked /><span>One way</span></label>
+              <label><input type="radio" name="trip" value="return" /><span>Return</span></label>
+            </div>
+          </fieldset>
+
+          <fieldset class="field">
+            <legend>Dates</legend>
+            <div class="segmented">
+              <label><input type="radio" name="dateMode" value="exact" /><span>Exact date</span></label>
+              <label><input type="radio" name="dateMode" value="window" checked /><span>Date range</span></label>
+            </div>
+          </fieldset>
+
+          <div class="field" data-show="exact">
+            <label for="depart">Departure</label>
+            <input id="depart" name="depart" type="date" required />
+          </div>
+          <div class="field" data-show="exact return" hidden>
+            <label for="return">Return</label>
+            <input id="return" name="return" type="date" />
+          </div>
+
+          <div class="field" data-show="window">
+            <label for="window-start">Leave between</label>
+            <input id="window-start" name="windowStart" type="date" />
+          </div>
+          <div class="field" data-show="window">
+            <label for="window-end">and</label>
+            <input id="window-end" name="windowEnd" type="date" />
+          </div>
+          <div class="field span-2 presets" data-show="window">
+            <span class="presets-label">Quick pick:</span>
+            <button type="button" class="chip-button" data-preset="weekend">Next weekend</button>
+            <button type="button" class="chip-button" data-preset="next-week">Next week</button>
+            <button type="button" class="chip-button" data-preset="week-after">Week after</button>
+            <button type="button" class="chip-button" data-preset="next-30" data-show="explore">Next 30 days</button>
+          </div>
+
+          <div class="field span-2" data-show="window return" hidden>
+            <label for="nights-min">Stay length (nights)</label>
+            <div class="inline-inputs">
+              <input id="nights-min" name="nightsMin" type="number" min="1" max="30" value="3" />
+              <span data-show="explore">to</span>
+              <input id="nights-max" name="nightsMax" type="number" min="1" max="30" value="7" data-show="explore" />
+            </div>
+          </div>
+        </div>
+
+        <details class="more">
+          <summary>More options</summary>
+          <div class="grid">
+            <div class="field">
+              <label for="stops">Stops</label>
+              <select id="stops" name="stops">
+                <option value="0">Any</option>
+                <option value="1">Nonstop only</option>
+                <option value="2">1 stop or fewer</option>
+                <option value="3">2 stops or fewer</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="max-price">Max price</label>
+              <input id="max-price" name="maxPrice" type="number" min="1" step="1" placeholder="No limit" />
+            </div>
+            <div class="field">
+              <label for="adults">Adults</label>
+              <input id="adults" name="adults" type="number" min="1" max="9" value="1" />
+            </div>
+            <div class="field">
+              <label for="currency">Currency</label>
+              <select id="currency" name="currency"></select>
+            </div>
+          </div>
+        </details>
+
+        <p class="form-error" id="form-error" role="alert" hidden></p>
+
+        <div class="actions">
+          <p class="cost" id="cost"></p>
+          <button type="submit" class="primary" id="submit">Find cheap flights</button>
+        </div>
+      </form>
+
+      <section id="results" class="results" aria-live="polite"></section>
+    </main>
+
+    <footer class="wrap site-footer">
+      Prices come from Google Flights through SerpAPI and can change at any moment. Check the price on the airline or
+      Google Flights before you book.
+    </footer>
+
+    <template id="destination-card">
+      <article class="destination card">
+        <div class="thumb"><img alt="" loading="lazy" referrerpolicy="no-referrer" /></div>
+        <div class="destination-body">
+          <div class="destination-top">
+            <div>
+              <h3 class="destination-name"></h3>
+              <p class="destination-country"></p>
+            </div>
+            <div class="price-block">
+              <p class="price"></p>
+              <p class="discount" hidden></p>
+            </div>
+          </div>
+          <p class="destination-dates"></p>
+          <p class="destination-meta"></p>
+          <p class="destination-note" hidden></p>
+          <div class="destination-actions">
+            <button type="button" class="secondary see-flights">See flights</button>
+            <a class="external" target="_blank" rel="noopener noreferrer">Google Flights</a>
+          </div>
+        </div>
+      </article>
+    </template>
+  </body>
+</html>
